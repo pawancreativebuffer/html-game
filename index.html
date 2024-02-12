@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sport metrics games</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <section>
+      <div class="container">
+        <h3 class="text-center mt-4 text-uppercase font-weight-bold mb-3">
+          Revolutionizing Football Assessment
+        </h3>
+        <p class="text-center">
+          In the ever-evolving landscape of football, a groundbreaking era of
+          player assessment has emerged, propelled by cutting-edge technology.
+          Traditional scouting methods are being redefined as advanced
+          analytics, artificial intelligence, and state-of-the-art data tracking
+          systems revolutionize the way football talent is evaluated.
+        </p>
+      </div>
+    </section>
+
+    <section class="background-image mt-4">
+      <div class="center-part shadow">
+        <img src="assets/images/bg.jpg" />
+        <div class="game-part">
+          <canvas id="footballCanvas" height="300" width="500"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-game mb-4">
+      <div class="container">
+        <div class="row">
+          <!-- center part -->
+          <div class="col-sm-4 mt-4 single-block">
+            <div class="p-4 mb-2 bg-danger text-white rounded">
+              <h6>Total Time</h6>
+              <h1 class="mb-0">00:00</h1>
+            </div>
+          </div>
+          <div class="col-sm-4 mt-4 single-block">
+            <div class="p-4 mb-2 bg-success text-white rounded">
+              <h6>Total Score</h6>
+              <h1 class="mb-0">0</h1>
+            </div>
+          </div>
+          <div class="col-sm-4 mt-4 single-block">
+            <div class="p-4 mb-2 bg-primary text-white rounded">
+              <h6>Total Mistakes</h6>
+              <h1 class="mb-0">0</h1>
+            </div>
+          </div>
+          <!-- center part -->
+        </div>
+      </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        const canvas = document.getElementById("footballCanvas");
+        const context = canvas.getContext("2d");
+        const numberOfCircles = 22;
+        let originalColors = [];
+        let redClickCount = 0;
+        let blueClickCount = 0;
+        let clickedBlueIndexes = [];
+
+        const positions1 = generateRandomPositions(11, 30, 10);
+        originalColors.push(...Array(11).fill("red"));
+
+        const positions2 = generateRandomPositions(11, 30, 10);
+        originalColors.push(...Array(11).fill("blue"));
+
+        drawCircles(positions1, originalColors.slice(0, 11), 10);
+        drawCircles(positions2, originalColors.slice(11, 22), 10);
+
+        // Function to change all circles to gray after 10 seconds
+        setTimeout(function () {
+          changeAllToGray();
+        }, 10000);
+
+        function changeAllToGray() {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          drawCircles(positions1, Array(11).fill("gray"), 10);
+          drawCircles(positions2, Array(11).fill("gray"), 10);
+        }
+
+        canvas.addEventListener("click", function (event) {
+          const rect = canvas.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+
+          checkCircleClick(positions1, x, y, "red");
+          checkCircleClick(positions2, x, y, "blue");
+        });
+
+        function drawCircles(positions, colors, radius) {
+          for (let i = 0; i < positions.length; i++) {
+            context.beginPath();
+            context.arc(positions[i].x, positions[i].y, radius, 0, 2 * Math.PI);
+            context.fillStyle = colors[i];
+            context.fill();
+            context.stroke();
+          }
+        }
+
+        function checkCircleClick(positions, clickX, clickY, color) {
+          for (let i = 0; i < positions.length; i++) {
+            const distance = Math.sqrt(
+              Math.pow(clickX - positions[i].x, 2) +
+                Math.pow(clickY - positions[i].y, 2)
+            );
+
+            if (distance < 10) {
+              // You can perform specific actions for red or blue clicks here
+              if (color === "red") {
+                handleRedClick();
+              } else if (color === "blue" && !clickedBlueIndexes.includes(i)) {
+                handleBlueClick(i);
+              }
+              break;
+            }
+          }
+        }
+
+        function handleRedClick() {
+          redClickCount++;
+          alert("Red circle clicked!");
+          if (redClickCount >= 5) {
+            alert("You have failed! Please reload to restart the game.");
+            // You can customize the message or behavior here
+          }
+        }
+
+        function handleBlueClick(index) {
+          clickedBlueIndexes.push(index);
+          blueClickCount++;
+          alert("Blue circle clicked!");
+          const clickedBluePosition = positions2[index];
+          context.beginPath();
+          context.arc(
+            clickedBluePosition.x,
+            clickedBluePosition.y,
+            10,
+            0,
+            2 * Math.PI
+          );
+          context.fillStyle = originalColors[index + 11]; // Use the updated color for the clicked circle
+          context.fill();
+          context.stroke();
+          if (blueClickCount >= 11) {
+            alert("You have completed the match");
+            // You can customize the message or behavior here
+          }
+        }
+
+        function generateRandomPositions(count, distance, radius) {
+          const positions = [];
+          for (let i = 0; i < count; i++) {
+            let position;
+            do {
+              position = {
+                x:
+                  Math.random() * (canvas.width - radius * 2 - distance * 2) +
+                  radius +
+                  distance,
+                y:
+                  Math.random() * (canvas.height - radius * 2 - distance * 2) +
+                  radius +
+                  distance,
+              };
+            } while (isOverlap(positions, position, radius + distance));
+            positions.push(position);
+          }
+          return positions;
+        }
+
+        function isOverlap(existingPositions, newPosition, combinedRadius) {
+          for (let i = 0; i < existingPositions.length; i++) {
+            const distance = Math.sqrt(
+              Math.pow(newPosition.x - existingPositions[i].x, 2) +
+                Math.pow(newPosition.y - existingPositions[i].y, 2)
+            );
+
+            if (distance < combinedRadius) {
+              return true;
+            }
+          }
+          return false;
+        }
+      });
+    </script>
+  </body>
+</html>
