@@ -157,3 +157,13 @@ img {
   vertical-align: middle;
   margin-left: -10px;
 }
+.check-status {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  background: #fff;
+  border-radius: 100px;
+  padding: 3px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  max-width: 70px;
+}

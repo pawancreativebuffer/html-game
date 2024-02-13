@@ -31,6 +31,7 @@
       <div class="center-part shadow">
         <img src="assets/images/bg.jpg" />
         <div class="game-part">
+          <div class="check-status d-none"></div>
           <canvas id="footballCanvas" height="300" width="500"></canvas>
           <div class="match-start-time">
             Match Start in: <span id="timer">00:00</span>
@@ -233,6 +234,12 @@
 
         function handleRedClick() {
           redClickCount++;
+          setTimeout(function () {
+            $(".check-status").addClass("d-none");
+          }, 500);
+          $(".check-status")
+            .removeClass("d-none")
+            .html(`<img src="assets/images/cross.png" />`);
           $("#totalMistakes").text(redClickCount);
           if (redClickCount >= 5) {
             $("#failMatch").removeClass("d-none");
@@ -242,6 +249,12 @@
         function handleBlueClick(index) {
           clickedBlueIndexes.push(index);
           blueClickCount++;
+          setTimeout(function () {
+            $(".check-status").addClass("d-none");
+          }, 500);
+          $(".check-status")
+            .removeClass("d-none")
+            .html(`<img src="assets/images/check.png" />`);
           $("#totalScore").text(blueClickCount);
           const clickedBluePosition = positions2[index];
           context.beginPath();
