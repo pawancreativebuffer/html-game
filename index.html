@@ -31,6 +31,31 @@
         <img src="assets/images/bg.jpg" />
         <div class="game-part">
           <canvas id="footballCanvas" height="300" width="500"></canvas>
+          <div class="match-start-time">
+            Match Start in: <span id="timer">00:00</span>
+          </div>
+          <div class="start-cta" id="startArea">
+            <button>
+              <img src="assets/images/start.png" alt="start" />
+            </button>
+          </div>
+
+          <!-- complete and failed -->
+          <div class="match-result bg-success d-none" id="completeMatch">
+            <div class="pic"><img src="assets/images/won.png" /></div>
+            <h2>You have completed the match</h2>
+            <button><img src="assets/images/restart.png" /></button>
+          </div>
+          <div class="match-result bg-danger d-none" id="failMatch">
+            <div class="pic"><img src="assets/images/fail.png" /></div>
+            <h2>You have failed! Click to restart the game.</h2>
+            <button><img src="assets/images/try-again.png" /></button>
+          </div>
+          <div class="match-result bg-info d-none" id="outOfTime">
+            <div class="pic"><img src="assets/images/clock.png" /></div>
+            <h2>Time's up! Click to restart the game.</h2>
+            <button><img src="assets/images/try-again.png" /></button>
+          </div>
         </div>
       </div>
     </section>
@@ -42,19 +67,19 @@
           <div class="col-sm-4 mt-4 single-block">
             <div class="p-4 mb-2 bg-danger text-white rounded">
               <h6>Total Time</h6>
-              <h1 class="mb-0">00:00</h1>
+              <h1 class="mb-0" id="countingTime">00:00</h1>
             </div>
           </div>
           <div class="col-sm-4 mt-4 single-block">
             <div class="p-4 mb-2 bg-success text-white rounded">
               <h6>Total Score</h6>
-              <h1 class="mb-0">0</h1>
+              <h1 class="mb-0" id="totalScore">0</h1>
             </div>
           </div>
           <div class="col-sm-4 mt-4 single-block">
             <div class="p-4 mb-2 bg-primary text-white rounded">
               <h6>Total Mistakes</h6>
-              <h1 class="mb-0">0</h1>
+              <h1 class="mb-0" id="totalMistakes">0</h1>
             </div>
           </div>
           <!-- center part -->
@@ -85,14 +110,50 @@
         drawCircles(positions2, originalColors.slice(11, 22), 10);
 
         // Function to change all circles to gray after 10 seconds
-        setTimeout(function () {
-          changeAllToGray();
-        }, 10000);
+        $("#startArea button").click(function () {
+          $("#startArea").addClass("d-none");
+          $(".match-start-time").addClass("d-block");
+          $(".game-part").addClass("disable-click");
+          let countdown = 10;
+          const timerInterval = setInterval(function () {
+            $("#timer").text("0:" + (countdown < 10 ? "0" : "") + countdown);
+            countdown--;
+
+            if (countdown < 0) {
+              $(".match-start-time").removeClass("d-block");
+              $(".game-part").removeClass("disable-click");
+              clearInterval(timerInterval);
+              changeAllToGray();
+            }
+          }, 1000);
+        });
 
         function changeAllToGray() {
           context.clearRect(0, 0, canvas.width, canvas.height);
           drawCircles(positions1, Array(11).fill("gray"), 10);
           drawCircles(positions2, Array(11).fill("gray"), 10);
+          startTimeCalculation();
+        }
+
+        function startTimeCalculation() {
+          let count = 180;
+          const timerInterval = setInterval(function () {
+            $("#countingTime").text(
+              Math.floor(count / 60) +
+                ":" +
+                (count % 60 < 10 ? "0" : "") +
+                (count % 60)
+            );
+            count--;
+
+            if (count < 0 || redClickCount >= 5 || blueClickCount >= 11) {
+              clearInterval(timerInterval);
+            }
+            if (count < 0) {
+              clearInterval(timerInterval);
+              $("#outOfTime").removeClass("d-none");
+            }
+          }, 1000);
         }
 
         canvas.addEventListener("click", function (event) {
@@ -135,17 +196,16 @@
 
         function handleRedClick() {
           redClickCount++;
-          alert("Red circle clicked!");
+          $("#totalMistakes").text(redClickCount);
           if (redClickCount >= 5) {
-            alert("You have failed! Please reload to restart the game.");
-            // You can customize the message or behavior here
+            $("#failMatch").removeClass("d-none");
           }
         }
 
         function handleBlueClick(index) {
           clickedBlueIndexes.push(index);
           blueClickCount++;
-          alert("Blue circle clicked!");
+          $("#totalScore").text(blueClickCount);
           const clickedBluePosition = positions2[index];
           context.beginPath();
           context.arc(
@@ -159,7 +219,7 @@
           context.fill();
           context.stroke();
           if (blueClickCount >= 11) {
-            alert("You have completed the match");
+            $("#completeMatch").removeClass("d-none");
             // You can customize the message or behavior here
           }
         }
@@ -198,6 +258,11 @@
           }
           return false;
         }
+
+        // reset evertything
+        $(".match-result button").click(function () {
+          window.location.reload();
+        });
       });
     </script>
   </body>
