@@ -76,7 +76,7 @@
             <tbody>
               <tr>
                 <td>11</td>
-                <td>5</td>
+                <td>3</td>
                 <td>3 Min</td>
               </tr>
             </tbody>
@@ -184,7 +184,7 @@
             );
             count--;
 
-            if (count < 0 || redClickCount >= 5 || blueClickCount >= 11) {
+            if (count < 0 || redClickCount >= 3 || blueClickCount >= 11) {
               clearInterval(timerInterval);
             }
             if (count < 0) {
@@ -241,7 +241,7 @@
             .removeClass("d-none")
             .html(`<img src="assets/images/cross.png" />`);
           $("#totalMistakes").text(redClickCount);
-          if (redClickCount >= 5) {
+          if (redClickCount >= 3) {
             $("#failMatch").removeClass("d-none");
           }
         }
