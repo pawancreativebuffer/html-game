@@ -174,7 +174,7 @@
         }
 
         function startTimeCalculation() {
-          let count = 180;
+          let count = 0; // Start from 0 seconds
           const timerInterval = setInterval(function () {
             $("#countingTime").text(
               Math.floor(count / 60) +
@@ -182,12 +182,12 @@
                 (count % 60 < 10 ? "0" : "") +
                 (count % 60)
             );
-            count--;
+            count++;
 
-            if (count < 0 || redClickCount >= 3 || blueClickCount >= 11) {
+            if (count >= 180 || redClickCount >= 3 || blueClickCount >= 11) {
               clearInterval(timerInterval);
             }
-            if (count < 0) {
+            if (count >= 180) {
               clearInterval(timerInterval);
               $("#outOfTime").removeClass("d-none");
             }
