@@ -10,7 +10,11 @@ img {
 .background-image {
   height: 650px;
   width: 100%;
-  background: #245207;
+  background-image: url("../images/background.jpg");
+  background-color: rgba(0, 0, 0, 0.8);
+  background-blend-mode: darken;
+  background-position: center;
+  background-size: cover;
   padding: 44px 20px;
   display: flex;
   align-items: center;
@@ -19,6 +23,7 @@ img {
   -webkit-align-items: center;
   -webkit-justify-content: center;
 }
+
 .center-part {
   width: 100%;
   max-width: 800px;
