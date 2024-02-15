@@ -32,7 +32,7 @@
         <img src="assets/images/bg.jpg" />
         <div class="game-part">
           <div class="check-status d-none"></div>
-          <canvas id="footballCanvas" height="300" width="500"></canvas>
+          <canvas id="footballCanvas" height="400" width="600"></canvas>
           <div class="match-start-time">
             Match Start in: <span id="timer">00:00</span>
           </div>
@@ -75,24 +75,18 @@
             </thead>
             <tbody>
               <tr>
-                <td>11</td>
+                <td>50</td>
                 <td>3</td>
-                <td>3 Min</td>
+                <td>1 Min</td>
               </tr>
             </tbody>
           </table>
 
-          <h5 class="text-dark mt-4 mb-2">Focus</h5>
+          <h5 class="text-dark mt-4 mb-2">Tap</h5>
           <p>
-            Focus on blue dot <span class="dot-blue"></span> and their postions.
-            Ensure that your vision is clear.
-          </p>
-          <h5 class="text-dark mt-4 mb-2">Overlapping</h5>
-          <p>
-            If you find any overlapping players <span class="dot-blue"></span
-            ><span class="dot-red"></span> on that case you have to click the
-            pointer carefully based on the visibility and calculation guess of
-            circle.
+            Tap directly on the player for your next move. Avoid clicking
+            outside the player, as it will impact your rank. Each time, the
+            player will appear in a different location.
           </p>
         </div>
       </div>
@@ -132,49 +126,87 @@
       $(document).ready(function () {
         const canvas = document.getElementById("footballCanvas");
         const context = canvas.getContext("2d");
-        const numberOfCircles = 22;
-        let originalColors = [];
-        let redClickCount = 0;
-        let blueClickCount = 0;
-        let clickedBlueIndexes = [];
+        const imageWidth = 40;
+        const imageHeight = 40;
+        let totalScore = 0;
+        let totalMistakes = 0;
+        let x, y;
 
-        const positions1 = generateRandomPositions(11, 30, 10);
-        originalColors.push(...Array(11).fill("red"));
+        function drawRandomImage() {
+          context.clearRect(0, 0, canvas.width, canvas.height);
 
-        const positions2 = generateRandomPositions(11, 30, 10);
-        originalColors.push(...Array(11).fill("blue"));
+          x = Math.random() * (canvas.width - imageWidth);
+          y = Math.random() * (canvas.height - imageHeight);
 
-        drawCircles(positions1, originalColors.slice(0, 11), 10);
-        drawCircles(positions2, originalColors.slice(11, 22), 10);
+          const img = new Image();
+          img.src = "assets/images/player-red.png";
 
-        // Function to change all circles to gray after 10 seconds
+          img.onload = function () {
+            context.drawImage(img, x, y, imageWidth, imageHeight);
+          };
+        }
+
+        canvas.addEventListener("click", function (event) {
+          const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+          const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+          if (
+            mouseX >= x &&
+            mouseX <= x + imageWidth &&
+            mouseY >= y &&
+            mouseY <= y + imageHeight
+          ) {
+            // Click is within the bounds of the image
+            totalScore++;
+            $("#totalScore").text(totalScore);
+            setTimeout(function () {
+              $(".check-status").addClass("d-none");
+            }, 500);
+            $(".check-status")
+              .removeClass("d-none")
+              .html(`<img src="assets/images/check.png" />`);
+            if (totalScore >= 50) {
+              $("#completeMatch").removeClass("d-none");
+            }
+          } else {
+            // Click is outside the bounds of the image
+            totalMistakes++;
+            $("#totalMistakes").text(totalMistakes);
+            setTimeout(function () {
+              $(".check-status").addClass("d-none");
+            }, 500);
+            $(".check-status")
+              .removeClass("d-none")
+              .html(`<img src="assets/images/cross.png" />`);
+            if (totalMistakes >= 3) {
+              $("#failMatch").removeClass("d-none");
+            }
+          }
+
+          // Generate a new random image after each click
+          drawRandomImage();
+        });
         $("#startArea button").click(function () {
           $("#startArea").addClass("d-none");
           $(".match-start-time").addClass("d-block");
           $(".game-part").addClass("disable-click");
-          let countdown = 10;
+          let countdown = 5;
           const timerInterval = setInterval(function () {
-            $("#timer").text("0:" + (countdown < 10 ? "0" : "") + countdown);
+            $("#timer").text("0:" + (countdown < 5 ? "0" : "") + countdown);
             countdown--;
 
             if (countdown < 0) {
               $(".match-start-time").removeClass("d-block");
               $(".game-part").removeClass("disable-click");
               clearInterval(timerInterval);
-              changeAllToGray();
+              drawRandomImage();
+              startTimeCalculation();
             }
           }, 1000);
         });
 
-        function changeAllToGray() {
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          drawCircles(positions1, Array(11).fill("gray"), 10);
-          drawCircles(positions2, Array(11).fill("gray"), 10);
-          startTimeCalculation();
-        }
-
         function startTimeCalculation() {
-          let count = 0; // Start from 0 seconds
+          let count = 0;
           const timerInterval = setInterval(function () {
             $("#countingTime").text(
               Math.floor(count / 60) +
@@ -184,129 +216,14 @@
             );
             count++;
 
-            if (count >= 180 || redClickCount >= 3 || blueClickCount >= 11) {
+            if (count >= 60 || totalMistakes >= 3 || totalScore >= 50) {
               clearInterval(timerInterval);
             }
-            if (count >= 180) {
+            if (count >= 60) {
               clearInterval(timerInterval);
               $("#outOfTime").removeClass("d-none");
             }
           }, 1000);
-        }
-
-        canvas.addEventListener("click", function (event) {
-          const rect = canvas.getBoundingClientRect();
-          const x = event.clientX - rect.left;
-          const y = event.clientY - rect.top;
-
-          checkCircleClick(positions1, x, y, "red");
-          checkCircleClick(positions2, x, y, "blue");
-        });
-
-        function drawCircles(positions, colors, radius) {
-          for (let i = 0; i < positions.length; i++) {
-            context.beginPath();
-            context.arc(positions[i].x, positions[i].y, radius, 0, 2 * Math.PI);
-            context.fillStyle = colors[i];
-            context.fill();
-            context.stroke();
-          }
-        }
-
-        function checkCircleClick(positions, clickX, clickY, color) {
-          for (let i = 0; i < positions.length; i++) {
-            const distance = Math.sqrt(
-              Math.pow(clickX - positions[i].x, 2) +
-                Math.pow(clickY - positions[i].y, 2)
-            );
-
-            if (distance < 10) {
-              // You can perform specific actions for red or blue clicks here
-              if (color === "red") {
-                handleRedClick();
-              } else if (color === "blue" && !clickedBlueIndexes.includes(i)) {
-                handleBlueClick(i);
-              }
-              break;
-            }
-          }
-        }
-
-        function handleRedClick() {
-          redClickCount++;
-          setTimeout(function () {
-            $(".check-status").addClass("d-none");
-          }, 500);
-          $(".check-status")
-            .removeClass("d-none")
-            .html(`<img src="assets/images/cross.png" />`);
-          $("#totalMistakes").text(redClickCount);
-          if (redClickCount >= 3) {
-            $("#failMatch").removeClass("d-none");
-          }
-        }
-
-        function handleBlueClick(index) {
-          clickedBlueIndexes.push(index);
-          blueClickCount++;
-          setTimeout(function () {
-            $(".check-status").addClass("d-none");
-          }, 500);
-          $(".check-status")
-            .removeClass("d-none")
-            .html(`<img src="assets/images/check.png" />`);
-          $("#totalScore").text(blueClickCount);
-          const clickedBluePosition = positions2[index];
-          context.beginPath();
-          context.arc(
-            clickedBluePosition.x,
-            clickedBluePosition.y,
-            10,
-            0,
-            2 * Math.PI
-          );
-          context.fillStyle = originalColors[index + 11]; // Use the updated color for the clicked circle
-          context.fill();
-          context.stroke();
-          if (blueClickCount >= 11) {
-            $("#completeMatch").removeClass("d-none");
-            // You can customize the message or behavior here
-          }
-        }
-
-        function generateRandomPositions(count, distance, radius) {
-          const positions = [];
-          for (let i = 0; i < count; i++) {
-            let position;
-            do {
-              position = {
-                x:
-                  Math.random() * (canvas.width - radius * 2 - distance * 2) +
-                  radius +
-                  distance,
-                y:
-                  Math.random() * (canvas.height - radius * 2 - distance * 2) +
-                  radius +
-                  distance,
-              };
-            } while (isOverlap(positions, position, radius + distance));
-            positions.push(position);
-          }
-          return positions;
-        }
-
-        function isOverlap(existingPositions, newPosition, combinedRadius) {
-          for (let i = 0; i < existingPositions.length; i++) {
-            const distance = Math.sqrt(
-              Math.pow(newPosition.x - existingPositions[i].x, 2) +
-                Math.pow(newPosition.y - existingPositions[i].y, 2)
-            );
-
-            if (distance < combinedRadius) {
-              return true;
-            }
-          }
-          return false;
         }
 
         // reset evertything
